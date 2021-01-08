@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from esys.finley import ReadGmsh
 import sys
-
+sys.path.append(os.getcwd())
 '''
 converts meshname.msh to meshname.fly
 
