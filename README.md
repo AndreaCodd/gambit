@@ -3,4 +3,4 @@ A package for geophysical inversion of point or plane gravity data and plane mag
 
 # Examples
 
-- planeG [planeG](examples/planeG/README.md)
+[planeG](planeG/README.md)
