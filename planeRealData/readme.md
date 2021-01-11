@@ -9,9 +9,9 @@ Steps:
 1. generate mesh from geo file  
 `gmsh -3 -format msh2 -o Gravity_201x338.msh Gravity_201x338.geo`
 2. convert msh file to fly file (optional)
-`run-escript mkfly.py Gravity_201x338`
+`run-escript ~/gambit/bin/mkfly.py Gravity_201x338`
 3. run inversion
-`run-escript planeGravInv.py GinvInputReal_withgeo`
+`run-escript ~/gambit/bin/planeGravInv.py GinvInputReal_withgeo`
 
 ### Real example make geo file
 Files:
@@ -61,3 +61,4 @@ Steps:
     + low: outputs data range, summaries of gravity data and final gravity, and initial, final and difference misfits as well as a silo of the final solution.
     + medium: low outputs + outputs residual norm from the PCG iterations
     + high: medium outputs + outputs misfit and smoothing value at each iteration step.  Also saves silos at misfit values of 0.05, 0.01, 0.008 and 0.005.  (Initial misfit is 0.5.)
+4. run-escript can be run with threads.
