@@ -24,13 +24,13 @@ Files:
   * planeGravInv.py
 Steps:
 1. generate geo
-`python3 mkGeoWithData2D.py G_201x338setup`
+`python3 ~/gambit/bin/mkGeoWithData2D.py G_201x338setup`
 2. generate mesh
 `gmsh -3 -format msh2 -o G_201x338test.msh G_201x338test.geo`
 3. convert .msh format to .fly (optional)
-`run-escript mkfly.py G_201x338test`
+`run-escript ~/gambit/bin/mkfly.py G_201x338test`
 4. run inversion
-`run-escript planeGravInv.py GinvInputReal_makegeo`
+`run-escript ~/gambit/bin/planeGravInv.py GinvInputReal_makegeo`
   
  ### Real plane magnetic data example with existing geo file
 Files:
