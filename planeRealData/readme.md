@@ -45,7 +45,7 @@ Steps:
 2. convert msh file to fly file (optional)
 `run-escript ~/gambit/bin/mkfly.py Gravity_201x338`
 3. run inversion
-`run-escript ~/gambit/bin/planeGravInv.py MinvInputReal_withgeo`
+`run-escript ~/gambit/bin/planeMagneticInv.py MinvInputReal_withgeo`
 
 ### Real plane magnetic data example make geo file
 Files:

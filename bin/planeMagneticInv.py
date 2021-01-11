@@ -16,7 +16,7 @@ import numpy as np
 from esys.escript.linearPDEs import LinearSinglePDE, SolverOptions
 from esys.escript.pdetools import PCG
 from esys.downunder import *
-from esys.weipa import *
+from esys.weipa import * 
 #from esys.escript import integrate, wherePositive, length
 #from esys.escript import saveDataCSV
 #from esys.escript.pdetools import MaskFromTag
