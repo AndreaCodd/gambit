@@ -77,3 +77,5 @@ Steps:
     + medium: low outputs + outputs residual norm from the PCG iterations
     + high: medium outputs + outputs misfit and smoothing value at each iteration step.  Also saves silos at misfit values of 0.05, 0.01, 0.008 and 0.005.  (Initial misfit is 0.5.)
 4. run-escript can be run with threads.
+5. Gravity and magnetic inversions use the same mesh.
+
