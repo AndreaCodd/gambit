@@ -10,15 +10,15 @@ Files:
   * planeGravInv.py
 Steps:
 1. generate geo
-`python3  mkSyntheticGeoData2D.py test`
+`python3 ~/gambit/bin/mkSyntheticGeoData2D.py test`
 2. generate mesh
 `gmsh -3 -format msh2 -o syth_testmesh.msh syth_test.geo`
 3. convert msh format to fly (optional)
-`run-escript mkfly.py syth_testmesh`
+`run-escript ~/gambit/bin/mkfly.py syth_testmesh`
 4. make synthetic data
-`python3 mkSyntheticData2D.py -s synth -g -m test`
+`python3 ~/gambit/bin/mkSyntheticData2D.py -s synth -g -m test`
 5. run inversion
-`run-escript planeGravInv.py GinvInput_synth.py`
+`run-escript ~/gambit/bin/planeGravInv.py GinvInput_synth.py`
 
 ## Comments
 1. An older output format for gmsh needs to be used so that tagging works.
