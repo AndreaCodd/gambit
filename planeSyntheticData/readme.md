@@ -1,37 +1,3 @@
-### Real example with existing geo file
-Files:
-  * Gravity\_201x338.nc
-  * Gravity\_201x338.geo
-  * GinvInputReal\_withgeo.py
-  * mkfly.py
-  * planeGravInv.py
-Steps:
-1. generate mesh from geo file  
-`gmsh -3 -format msh2 -o Gravity_201x338.msh Gravity_201x338.geo`
-2. convert msh file to fly file (optional)
-`run-escript mkfly.py Gravity_201x338`
-3. run inversion
-`run-escript planeGravInv.py GinvInputReal_withgeo`
-
-### Real example make geo file
-Files:
-  * Gravity_201x338.nc
-  * G_201x338setup.py
-  * OnGroundTemplate.geo
-  * mkGeoWithData2D.py
-  * GinvInputReal_makegeo.py
-  * mkfly.py
-  * planeGravInv.py
-Steps:
-1. generate geo
-`python3 mkGeoWithData2D.py G_201x338setup`
-2. generate mesh
-`gmsh -3 -format msh2 -o G_201x338test.msh G_201x338test.geo`
-3. convert .msh format to .fly (optional)
-`run-escript mkfly.py G_201x338test`
-4. run inversion
-`run-escript planeGravInv.py GinvInputReal_makegeo`
-  
 ### Synthetic example
 Files:
   * test.py 
