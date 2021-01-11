@@ -172,7 +172,7 @@ class ACmag(object):
     def solve(self):
         tstart=time()
         r = self.RHS()
-        if self.verboseLevel == "low"
+        if self.verboseLevel == "low":
             m = PCG(r, self.Aprod, self.m0, self.Msolve, self.bilinearform,
                  atol=self.atol, rtol=self.rtol, iter_max=self.iter_max, 
                  initial_guess=True, verbose=False)
