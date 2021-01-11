@@ -9,20 +9,13 @@ import argparse
 
 from esys.escript import *
 from esys.finley import ReadGmsh, ReadMesh
-#import esys.escript as escript
-#import esys.finley as finley
 import esys.escript.unitsSI as U
 import numpy as np
 from esys.escript.linearPDEs import LinearSinglePDE, SolverOptions
 from esys.escript.pdetools import PCG
 from esys.downunder import *
 from esys.weipa import * 
-#from esys.escript import integrate, wherePositive, length
-#from esys.escript import saveDataCSV
-#from esys.escript.pdetools import MaskFromTag
-#import sys
 from scipy.io import netcdf_file
-#from time import time 
 
 class ACmag(object):
     def __init__(self, domain, w_e, bBx, bBy, bBz, dmag_e, k_0, mu, m0,
@@ -46,6 +39,7 @@ class ACmag(object):
         self.zr_zr = []
         self.mfs=[]
         self.smooths=[]
+        self.output_name=output_name
         
         #boundaries       
         z=self.domain.getX()[2]
@@ -87,7 +81,7 @@ class ACmag(object):
         return integrate(inner(grad(m), r[1])+ m*r[0])
     
     def compCmag(self,x):
-        self.pdeu.setValue(X = self.k_0*x*self.bBv, Y = self.zero)
+        self.pdeu.setValue(X = self.k_0*x*self.bBv, Y = Scalar(0., Solution(self.domain)))
         u = self.pdeu.getSolution()       
         return inner(self.wbBv,-grad(u))
 
@@ -155,9 +149,7 @@ class ACmag(object):
            smooth=integrate(inner(grad(x),grad(x)))
            self.smooths.append(np.double(smooth))
            self.zr_zr.append(np.single(rhat_dot_r/rzrz0))
-           if mf>mfold:
-               print("disaster disaster disaster disaster disaster disaster disaster") 
-           print('mf ', mf)
+           print('mf ', mf,' smooth ',smooth)
            print(("PCG: iteration step %s: residual norm = %e"%(piter, np.sqrt(rhat_dot_r))))
        print(("PCG: tolerance reached after %s steps."%piter))
        allsmooths=np.array(self.smooths)
@@ -170,17 +162,16 @@ class ACmag(object):
     
 
     def solve(self):
-        tstart=time()
         r = self.RHS()
         if self.verboseLevel == "low":
             m = PCG(r, self.Aprod, self.m0, self.Msolve, self.bilinearform,
                  atol=self.atol, rtol=self.rtol, iter_max=self.iter_max, 
                  initial_guess=True, verbose=False)
-        elif config.VerboseLevel == "medium":
+        elif self.verboseLevel == "medium":
             m = PCG(r, self.Aprod, self.m0, self.Msolve, self.bilinearform,
                  atol=self.atol, rtol=self.rtol, iter_max=self.iter_max, 
                  initial_guess=True, verbose=True)
-        elif config.VerboseLevel == "high":#    
+        elif self.verboseLevel == "high":#    
             m = self.myPCG(self.m0, r)
         # magnetism
         cmag= self.compCmag(m[0])
@@ -253,7 +244,7 @@ class DataReader(object):
 
 ########################################################################
 ### Input files and variables from file 
-parser = argparse.ArgumentParser(description='Gravity inversion for plane data in netcdf format.', epilog="version 01/2021 by a.codd@uq.edu.au")
+parser = argparse.ArgumentParser(description='Magnetic inversion for plane data in netcdf format.', epilog="version 01/2021 by a.codd@uq.edu.au")
 parser.add_argument(dest='config', metavar='CONFIG', type=str, help='configuration file.')
 args = parser.parse_args()
 config = importlib.import_module(args.config)
@@ -284,11 +275,11 @@ else:
     dom=ReadMesh(config.mesh_name, numDim = 3)
 print("Mesh read from "+config.mesh_name)
 
-w_e = escript.Scalar(0,escript.Function(dom))        
+w_e = Scalar(0,Function(dom))        
 w_e.setTaggedValue("DataArea",1)
 w_e.expand()
 
-ground_e=escript.Scalar(0,escript.Function(dom))    
+ground_e=Scalar(0,Function(dom))    
 ground_e.setTaggedValue("Base",1)
 ground_e.setTaggedValue("PaddingBase",1)
 ground_e.expand()
@@ -304,12 +295,7 @@ k_0 = k_0*ground_e
 #if config.VerboseLevel == "low":
 cmag = ACmag(dom, w_e, bBx, bBy, bBz, dmag_e, k_0, mu, m0, atol, rtol, iter_max, pdetol, config.output_name, config.VerboseLevel)
 m, cmb = cmag.solve()
-#elif config.VerboseLevel == "medium":
-#    cmag = ACmag(dom, dom, w_e, bBx, bBy, bBz, dmag_e, k_0, mu, m0, atol, rtol, iter_max, pdetol, config.output_name, True)
-#    m, cmb = cmag.solve()
-#elif config.VerboseLevel == "high":
-#    cmag = ACmag(dom, w_e, bBx, bBy, bBz, dmag_e, k_0, mu, m0, atol, rtol, iter_max, pdetol, config.output_name)
-#    m, cmb = cmag.solve2()
+
 
 newk=m*k_0
 saveSilo(config.output_name+"_final", c_mag = cmb , m=m, data=dmag_e, k=newk)
