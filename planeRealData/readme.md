@@ -32,28 +32,6 @@ Steps:
 4. run inversion
 `run-escript planeGravInv.py GinvInputReal_makegeo`
   
-### Synthetic example
-Files:
-  * test.py 
-  * OnGroundTemplate.geo 
-  * AboveGroundTemplate.geo
-  * mkSyntheticGeoData2D.py
-  * mkSyntheticData2D.py
-  * GinvInput\_synth.py
-  * mkfly.py
-  * planeGravInv.py
-Steps:
-1. generate geo
-`python3  mkSyntheticGeoData2D.py test`
-2. generate mesh
-`gmsh -3 -format msh2 -o syth_testmesh.msh syth_test.geo`
-3. convert msh format to fly (optional)
-`run-escript mkfly.py syth_testmesh`
-4. make synthetic data
-`python3 mkSyntheticData2D.py -s synth -g -m test`
-5. run inversion
-`run-escript planeGravInv.py GinvInput_synth.py`
-
 ## Comments
 1. An older output format for gmsh needs to be used so that tagging works.
 2. It is not necessary to convert msh files to fly files but in some cases it is faster to load fly files in the inversion code.  The inversion code is generally run multiple times with different scaling factors.
