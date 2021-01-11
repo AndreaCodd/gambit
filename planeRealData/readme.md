@@ -5,6 +5,7 @@ Files:
   * GinvInputReal\_withgeo.py
   * mkfly.py
   * planeGravInv.py
+  
 Steps:
 1. generate mesh from geo file  
 `gmsh -3 -format msh2 -o Gravity_201x338.msh Gravity_201x338.geo`
@@ -22,6 +23,7 @@ Files:
   * GinvInputReal_makegeo.py
   * mkfly.py
   * planeGravInv.py
+  
 Steps:
 1. generate geo
 `python3 ~/gambit/bin/mkGeoWithData2D.py G_201x338setup`
