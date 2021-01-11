@@ -7,6 +7,4 @@ A package for geophysical inversion of point or plane gravity data and plane mag
 
 [planeSyntheticData](https://github.com/AndreaCodd/gambit/blob/main/planeSyntheticData/readme.md)
 
-[pointRealData](https://github.com/AndreaCodd/gambit/blob/main/pointRealData/readme.md)
-
-[pointSyntheticData](https://github.com/AndreaCodd/gambit/blob/main/pointSyntheticData/readme.md)
+[pointData](https://github.com/AndreaCodd/gambit/blob/main/pointData/readme.md)
