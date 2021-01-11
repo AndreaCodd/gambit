@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 from esys.finley import ReadGmsh
-import sys
+import importlib, os, sys
 sys.path.append(os.getcwd())
+
 '''
 converts meshname.msh to meshname.fly
-
 run-escript mkfly.py meshname
 '''
 
