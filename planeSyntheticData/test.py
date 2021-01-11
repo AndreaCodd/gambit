@@ -87,4 +87,4 @@ s2={ 'xc' : 2*LDataX/3, 'yc' : 2*LDataY/3, 'zc' : -CoreThickness*0.1, 'r' : 8*km
 true_density = [(-320, [s1]),(500, [s2]) ] 
 
 # ... 0.1 on sphere 1 and 0.03 on sphere 2:
-true_magnetization= [ ( 0.1, [s1]), (0.03, [s2])]
+true_magnetization= [ ( 0.16, [s1]), (-0.25, [s2])]
