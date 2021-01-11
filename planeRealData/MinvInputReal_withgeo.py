@@ -21,7 +21,7 @@ Decl   =  0.86171459    # clockwise from true north
 
 mesh_name = "Gravity_201x338.fly"
 data_file = "Magnetic_201x338.nc"
-output_name = "M_201x338_k0_{0:1.3e}_mu_{1:1.3e}".format(rho_0,mu)
+output_name = "M_201x338_k0_{0:1.3e}_mu_{1:1.3e}".format(k_0,mu)
 
 
 #VerboseLevel = "low"
