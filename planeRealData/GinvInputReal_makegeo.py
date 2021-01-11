@@ -20,6 +20,6 @@ data_file = "Gravity_201x338.nc"
 output_name = "G_test_201x338_rho0_{0:1.3e}_mu_{1:1.3e}".format(rho_0,mu)
 
 
-#VerboseLevel = "low"
+VerboseLevel = "low"
 #VerboseLevel = "medium"
-VerboseLevel = "high"
+#VerboseLevel = "high"

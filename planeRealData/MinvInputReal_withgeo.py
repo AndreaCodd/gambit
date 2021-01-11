@@ -24,6 +24,6 @@ data_file = "Magnetic_201x338.nc"
 output_name = "M_201x338_k0_{0:1.3e}_mu_{1:1.3e}".format(k_0,mu)
 
 
-#VerboseLevel = "low"
+VerboseLevel = "low"
 #VerboseLevel = "medium"
-VerboseLevel = "high"
+#VerboseLevel = "high"
