@@ -190,13 +190,13 @@ class DataReader(object):
         self.setReferencePoint()
         latitude=None
         longitude=None
-        for latvar in "latitude", "lat", "y_range":
+        for latvar in "latitude", "lat", "y_range", "y":
             try:
                 latitude=f.variables[latvar]
                 break
             except KeyError:
                 pass
-        for lonvar in "longitude", "lon", "x_range":
+        for lonvar in "longitude", "lon", "x_range", "x":
             try:
                 longitude=f.variables[lonvar]
                 break
@@ -222,7 +222,7 @@ class DataReader(object):
         for datavar in f.variables.keys():
             if datavar not in [latvar, lonvar]:
                 DATA=f.variables[datavar]
-                print("Gravity data variable '%s' read from %s."%(datavar,data_file))
+                print("Magnetic data variable '%s' read from %s."%(datavar,data_file))
                 # convert NaN (not-a-number) values to -1000 so the plotting works
                 DATA=np.where(np.isnan(DATA[:]), -1000, DATA[:])
 

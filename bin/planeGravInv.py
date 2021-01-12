@@ -239,7 +239,6 @@ print("Configuration "+args.config+".py imported.")
 
 mu       = config.mu
 rho_0    = config.rho_0
-rho_r    = config.rho_r
 atol     = config.atol  
 rtol     = config.rtol
 pdetol   = config.pdetol
@@ -269,7 +268,7 @@ rho_e = rho_0*rho_e
 
 # read in data and make g
 dr=DataReader(config.data_file)
-gz_e = dr.extractData(dom)*wherePositive(w_e)*data_scale#/1.e6   #### convert from micrometers/s^2 to m/s^2
+gz_e = dr.extractData(dom)*wherePositive(w_e)*data_scale#/1.e6   #### convert from micrometres/s^2 to m/s^2
 del dr
 
 
