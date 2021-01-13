@@ -9,14 +9,7 @@ from esys.escript.pdetools import PCG
 from esys.downunder import *
 from esys.weipa import *
 from esys.escript import integrate, wherePositive, length
-#from esys.escript import saveDataCSV, loadDataCSV
-#from esys.escript.pdetools import MaskFromTag
 import sys
-#from scipy.io import netcdf_file
-from time import time
-import pickle as pickle
-
-
 
 mesh_file = 'variable_groundfiner.fly' #'vg_fine9.fly'
 #mesh_file='MtIsaCloncurryMesh3.fly'

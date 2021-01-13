@@ -18,7 +18,6 @@ class FOSLSGravity(object):
         #####   Assumes vertical gravity.  
         # data weighting  -  equal, relative, accuracy
         # depth weighting - noWt, coreWt, baseWt, updown
-        #print("init")
         self.domain = domain
         self.gz = np.array(gz)
         self.locG = Locator(ContinuousFunction(self.domain),recorders)
@@ -100,8 +99,6 @@ class FOSLSGravity(object):
         pde.setValue(A = aa*kronecker(3))
         pde.setValue(D = Scalar(bb  , Function(self.domain)))
         pde.setSymmetryOn()
-        #print("bc")
-        # boundaries
         q=self.qleft+self.qright+self.qtop+self.qfront+self.qback+self.qtop+self.qbottom
         pde.setValue(q=q)
         Foptions=pde.getSolverOptions()
