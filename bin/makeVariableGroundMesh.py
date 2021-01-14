@@ -28,6 +28,7 @@ for ind1 in range(len(pts)):
     el = nndist / config.spacing0
     if nndist < config.mindist1:
         el = nndist/config.spacing1
+        
     if nndist < config.mindist2: 
         el= nndist/config.spacing2
     nds.append(el)
@@ -55,7 +56,6 @@ Bymin = ymin - span/2
 Bymax = ymax + span/2
 Bzmin = 2.*zmin
 Bzmax = 2.*zmax
-
 # meshsizes
 MCtop = config.MCtop
 MCbase = config.MCbase
@@ -233,7 +233,7 @@ for i in range(len(pts)):
     pt=pts[i]
     nd = nds[i]
     out+="k=newp;\n"
-    out+="Point(k)={%e,%e,%e,%e};\n"%(pt[0],pt[1],pt[2],nd/4.)
+    out+="Point(k)={%e,%e,%e,%e};\n"%(pt[0],pt[1],pt[2],nd)
     out+="Point{k} In Surface{2};\n"
 out+="""
 // VOLUMES

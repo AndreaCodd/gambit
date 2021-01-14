@@ -1,15 +1,23 @@
+#!/usr/bin/python3
+__copyright__ = "Copyright (c) 2021 by University of Queensland http://www.uq.edu.au"
+__license__   = "Licensed under the Apache License, version 2.0 http://www.apache.org/licenses/LICENSE-2.0"
+__credits__   = "Andrea Codd"
+
+import importlib, sys, os
+sys.path.insert(0, os.getcwd())
+import argparse
+
 from esys.escript import *
-import esys.escript as escript
-import esys.finley as finley
+from esys.finley import ReadGmsh, ReadMesh
 import esys.escript.unitsSI as U
 import numpy as np
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE,  SolverOptions
 from esys.escript.pdetools import PCG
 from esys.downunder import *
 from esys.weipa import *
-from esys.escript import integrate, wherePositive, length
-import sys
-import pickle as pickle
+from scipy.io import netcdf_file
+#from esys.escript import integrate, wherePositive, length
+
 
 class FOSLSGravity(object):
     def __init__(self, domain, gz, recorders, rho_0, P0, wdsq, 
@@ -352,45 +360,45 @@ class FOSLSGravity(object):
 
 
 ########################################################################
-# constants
-t0 = time()
-#mu         = 1.e-18
-rho0       = 1.*U.kg/U.m**3
-atol       = 0.        # absolute tolerance  
-rtol       = 1.e-3     # relative tolerance   *|r| <= atol+rtol*|r0|*  (energy norm)
-pdetol     = 1.e-8     # make sure this is the square of rtol
-iter_max   = 250 
+### Input files and variables from file 
+parser = argparse.ArgumentParser(description='Gravity inversion for plane data in netcdf format.', epilog="version 01/2021 by a.codd@uq.edu.au")
+parser.add_argument(dest='config', metavar='CONFIG', type=str, help='configuration file.')
+args = parser.parse_args()
+config = importlib.import_module(args.config)
+print("Configuration "+args.config+".py imported.")
 
-s = 900.
-a = 72000.
-b = 8.    
+
+rho_0    = config.rho_0
+atol     = config.atol  
+rtol     = config.rtol
+pdetol   = config.pdetol
+iter_max = config.iter_max 
+
+acc_data_file = config.accuracy_data_file
+data_scale = config.data_scale
+s = config.s 
+a = config.a
+b = config.b
 mu=1./(8*np.pi*s*a**3)
 
-namea= 'dc_s_'+str(int(s))+'_a_'+str(int(a))+'_b_'+str(int(b))+'_'
+namea = config.save_name
 
-###  dataweighting # equal, relative, accuracy
-dataWt = 'accuracy'
+dataWt = config.dataWt
 
 ###  depthWeight    # noWt, coreWt, baseWt, updown
-depthWeight = "noWt" 
-coreD = -20000.
+depthWeight = config.depthWeight 
 
-mesh_file = 'variable_groundfiner.fly'#'vg_fine9.fly'
-saveString='fix_s_r_tol-3'+namea
-
-siloName = 'silos/'+saveString
-outname = 'csv/'+saveString
-smooths_name =  outname+'smooths.csv'
-mfs_name = outname+'mfs.csv'
-rzrzs_name = outname+'rzrzs.csv'
+smooths_name =  namea+'smooths.csv'
+mfs_name = namea+'mfs.csv'
+rzrzs_name = namea+'rzrzs.csv'
 
 # read in gravity
-gz = np.loadtxt('MtIsaCloncurry_gz.csv',delimiter=',')
-MeasEs = np.loadtxt('MtIsaCloncurry_MeasEs.csv',delimiter=',')
+gz = np.loadtxt(config.gravity_data_file, delimiter=',')
+MeasEs = np.loadtxt(config.obsPts_file, delimiter=',')
 recorders=[]
 for bob in MeasEs:
     recorders.append((bob[0],bob[1],bob[2]))
-gz=np.array(gz)/1.e6    # to m/s^2           
+gz=np.array(gz)*config.data_scale             
 measnum = len(gz)
 norm_data_sq = np.inner(gz,gz)
 print(measnum)
@@ -400,19 +408,25 @@ wdsq = 1./(2.*norm_data_sq)*np.ones(measnum)
 if dataWt =='relative':
     wdsq=1./(2.*measnum*gz**2)
 if dataWt =='accuracy':
-    acc = np.array(np.loadtxt('MtIsaCloncurry_acc.csv',delimiter=','))/1.e6   # to m/s^2
+    acc = np.array(np.loadtxt(config.accuracy_data_file, delimiter=','))*config.data_scale
     scale = sum((gz/acc)**2)
     wdsq = np.array(1./(measnum*acc**2))
-    #wdsq = np.array(1./(acc**2))/(2.*scale)
-
+    
 # build domain 
-print("Loading the mesh..."+mesh_file)
-dom = finley.ReadMesh(mesh_file, numDim=3,
+filename, file_extension = os.path.splitext(config.mesh_name)
+if file_extension == ".msh":
+    dom=ReadGmsh(config.mesh_name, numDim = 3,
                          diracPoints = [sp for sp in recorders], 
-                         diracTags = [st for st in range(len(recorders))]) 
+                         diracTags = [st for st in range(len(recorders))])
+else:
+    dom=ReadMesh(config.mesh_name, numDim = 3,
+                         diracPoints = [sp for sp in recorders], 
+                         diracTags = [st for st in range(len(recorders))])
+print("Mesh read from "+config.mesh_name) 
 
 coord=dom.getX()
 depthWt = whereNegative(coord[2])
+
 minZ =inf(coord[2])
 gd = 0.0
 xmin = inf(coord[0])
@@ -421,7 +435,9 @@ ymin = inf(coord[1])
 ymax = sup(coord[1])
 gVol = (xmax-xmin)*(ymax-ymin)*(gd-minZ)
 
+
 if depthWeight == "coreWt":
+    coreD = config.coreD
     factor = coord[2]/coreD*wherePositive(coord[2]-coreD)+(1.-wherePositive(coord[2]-coreD))
     depthWt = depthWt*(factor)
 if depthWeight == "baseWt":
@@ -430,18 +446,18 @@ if depthWeight == "updown":
     factor = coord[2]/coreD*wherePositive(coord[2]-coreD)+ (1.- coord[2]/minZ)*(1.-wherePositive(coord[2]-coreD))
     depthWt = depthWt*(factor)
 
-rho_e = rho0*depthWt
+rho_e = rho_0*depthWt
 
 # initial guess
 P0 = Data(0., (4,), Solution(dom)) 
-tpre=time()
+
 #print("pre call to FOSLSGravity")
 grav = FOSLSGravity(dom, gz=gz, recorders=recorders, rho_0=rho_e, P0=P0, 
                     wdsq=wdsq, mu=mu, a = a, b = b, atol=atol, rtol=rtol, 
                     iter_max = iter_max, pde_tol=pdetol, name = siloName)
 #print("done call to gravity now calling solve")
 p = grav.solve()
-tpost=time()
+
 
 rho = p* rho_e
 rhobar = (1./gVol)*integrate(rho)
@@ -455,9 +471,6 @@ print('stddev       ', stddev)
 
 
  
-
-print("total time for PCG ",tpost-tpre)
-
 
 print(outname)
 #np.savetxt(smooths_name,smooths, delimiter=",")
