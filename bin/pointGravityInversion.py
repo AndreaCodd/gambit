@@ -15,8 +15,6 @@ from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE,  SolverOptions
 from esys.escript.pdetools import PCG
 from esys.downunder import *
 from esys.weipa import *
-from scipy.io import netcdf_file
-#from esys.escript import integrate, wherePositive, length
 
 
 class FOSLSGravity(object):
