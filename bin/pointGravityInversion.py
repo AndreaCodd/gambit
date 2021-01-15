@@ -22,7 +22,7 @@ from scipy.io import netcdf_file
 class FOSLSGravity(object):
     def __init__(self, domain, gz, recorders, rho_0, P0, wdsq, 
                        mu, a=0., b=1., atol=1.0, rtol=1.0, iter_max=100, 
-                       pde_tol=1e-8, name='bob' ):
+                       pde_tol=1e-8, name='bob', verboseLevel="low"):
         #####   Assumes vertical gravity.  
         # data weighting  -  equal, relative, accuracy
         # depth weighting - noWt, coreWt, baseWt, updown
@@ -41,7 +41,7 @@ class FOSLSGravity(object):
         self.pdetol = pdetol
         self.name = name
         self.numes = len(self.gz)
-        #self.verbose = True
+        self.verboseLevel = verboseLevel
         self.beta = 4.0*np.pi*U.Gravitational_Constant
 
         #boundaries       
@@ -54,26 +54,18 @@ class FOSLSGravity(object):
         self.qback = whereZero(coord[1]-sup(coord[1]))
 
         # pdes
-        #print("setting up pdes. P first")
         self.dPpde = self.setupdPpde()
         self.dppde = self.setupdppde()
-        #print("now g pde setup")
         self.FOSLSpde = self.setupFOSLSpde()
 
     def setupFOSLSpde(self):
-        #print("settipng up g pde")
-        # (LU, LV) - So just A and bc
         FOSLSpde = LinearPDE(self.domain,numEquations=3,numSolutions=3)
         FOSLSpde.setSymmetryOn()
-        # boundaries
-        #print("bc")
         q=Data(0, (3,), Solution(self.domain))
         q[0]=self.qleft+self.qright+self.qtop
         q[1]=self.qfront+self.qback+self.qtop
         q[2]=self.qbottom
         FOSLSpde.setValue(q=q)
-        # coefficients
-        #print("A")
         A=Data(0,(3,3,3,3),Function(self.domain))
         for jj in range(3):
             for kk in range(3):
@@ -83,7 +75,6 @@ class FOSLSGravity(object):
                     A[jj,kk,jj,kk] = Scalar(1.,Function(self.domain))
                     A[kk,jj,jj,kk] = -Scalar(1.,Function(self.domain))
                     A[jj,kk,kk,jj] = -Scalar(1.,Function(self.domain)) 
-        #print("assign A")
         FOSLSpde.setValue(A=A)
         Foptions=FOSLSpde.getSolverOptions()
         Foptions.setPackage(SolverOptions.TRILINOS)
@@ -92,15 +83,9 @@ class FOSLSGravity(object):
         Foptions.setTolerance(self.pdetol)
         Foptions.setTrilinosParameter("number of equations",3)
         Foptions.setTrilinosParameter("reuse: type","full")
-        #Foptions.setTrilinosParameter("max levels", 10)  
-        #Foptions.setTrilinosParameter("verbosity", "high")
-        #Foptions.setVerbosityOn()
-        #print("at end g pde setup")
         return FOSLSpde
 
     def setupdPpde(self):
-        #print("P pde")
-        #(SP, SQ)
         aa = self.a*self.a
         bb = self.b*self.b
         pde=LinearSinglePDE(self.domain, isComplex=False)
@@ -115,22 +100,14 @@ class FOSLSGravity(object):
         Foptions.setPreconditioner(SolverOptions.AMG)       
         Foptions.setTolerance(self.pdetol)
         Foptions.setTrilinosParameter("reuse: type","full")
-        #Foptions.setTrilinosParameter("max levels", 10)  
-        #Foptions.setTrilinosParameter("verbosity", "high")
-        #Foptions.setVerbosityOn()
-        #print("at end P PDE setup")
         return pde
 
 
     def setupdppde(self):
-        #print("p pde")
-        #(SP, SQ)
         aabb = self.a*self.a*self.b*self.b
         pde=LinearSinglePDE(self.domain, isComplex=False)
         pde.setValue(A = aabb*kronecker(3))
         pde.setValue(D = Scalar(1., Function(self.domain)))
-        #print("bc")
-        # boundaries 
         q=self.qleft+self.qright+self.qtop+self.qfront+self.qback+self.qtop+self.qbottom
         pde.setValue(q=q)
         Foptions=pde.getSolverOptions()
@@ -138,19 +115,11 @@ class FOSLSGravity(object):
         Foptions.setSolverMethod(SolverOptions.PCG)
         Foptions.setPreconditioner(SolverOptions.AMG)       
         Foptions.setTolerance(self.pdetol)
-        #Foptions.setTrilinosParameter("number of equations",4)
         Foptions.setTrilinosParameter("reuse: type","full")
-        #Foptions.setTrilinosParameter("max levels", 10)  
-        #Foptions.setTrilinosParameter("verbosity", "high")
-        #Foptions.setVerbosityOn()
-        #print("at end p PDE setup")
         return pde
 
     def RHS(self): 
-        print("start of RHS")
-        # returns initial residual, 
-        # lines 2 and 3  
-        # small system 
+        # returns initial residual  
         # ( LU , LV) = (w^2 d r, V) : V=test functions
         Y = Data(0,(3,),Function(self.domain))
         X = Data(0,(3,3),Function(self.domain))
@@ -270,10 +239,6 @@ class FOSLSGravity(object):
         SP4 = integrate((a*(-gradp1[2] + gradp2[1]))**2)
         SP5 = integrate((a*(gradp0[2] - gradp2[0]))**2)
         SP6 = integrate((a*(-gradp0[1] + gradp1[0]))**2)
-        #print('SPSP grads', SP0,SP1,SP2)
-        #print('SPSP m', SP3)
-        #print('SPSP curls', SP4,SP5,SP6)
-        #print()
         SPSP=SP0+SP1+SP2+SP3+SP4+SP5 +SP6
         return SPSP
 
@@ -282,17 +247,12 @@ class FOSLSGravity(object):
         # x intial approximation P0 (4 elements)
         # r initial residual (4 elements but first 3 are zero)
         piter=0   # iteration count
-        # output for csv 
-        #mfs = []
-        #smooths = []
-        #rzrzs = []
-        #print("pre MSOLVE")
+        mfs = []
+        smooths = []
+        rzrzs = []
         rhat = self.Msolve(r)  
-        #print("done Msolve")        
-                           # Line 4
-        d = rhat                                          # Line 5
-        rhat_dot_r = self.bilinearform(rhat, r)           # < R_0 , Z_0 >  
-        #print("rhatdotr ",iter, " ",rhat_dot_r)
+        d = rhat                                          
+        rhat_dot_r = self.bilinearform(rhat, r)             
         if rhat_dot_r<0: print("negative norm.")
         rzrz0 = rhat_dot_r
         norm_r0=np.sqrt(rhat_dot_r)
@@ -305,11 +265,11 @@ class FOSLSGravity(object):
         U2vect=np.array(self.locG(U2))
         diffG= U2vect-self.gz 
         mf=np.inner(diffG, diffG*self.wdsq )
-        #smooth=self.getSPSP(x)
-        #smooths.append(smooth)
-        #mfs.append(mf)
-        #rzrzs.append(1.0)
-        print(piter,'mf',mf)#,'smooth',smooth,'rzrz 1.0' )
+        smooth=self.getSPSP(x)
+        smooths.append(smooth)
+        mfs.append(mf)
+        rzrzs.append(1.0)
+        print(piter,'mf',mf,'smooth',smooth, 'rzrz 1.0' )
 
         while not np.sqrt(rhat_dot_r) <= atol2:
            piter+=1
@@ -327,35 +287,48 @@ class FOSLSGravity(object):
            d=rhat
 
            rhat_dot_r = rhat_dot_r_new
-           #print("rhatdotr ",iter, " ",rhat_dot_r)
            if rhat_dot_r<0: print("negative norm.")
            U = -self.getGravity(x)
            U2data = np.array(self.locG(U[2]))
            diffG=U2data-self.gz
            mf=np.inner(diffG, diffG*self.wdsq )
-           #smooth=self.getSPSP(x)
-
-           #print(piter, 'mf',mf,'smooth',smooth, 'rzrz', rhat_dot_r/rzrz0)
-           print(piter, 'mf',mf, 'rzrz', rhat_dot_r/rzrz0)
+           smooth=self.getSPSP(x)
+           print(piter, 'mf',mf,'smooth',smooth, 'rzrz', rhat_dot_r/rzrz0)
+           #print(piter, 'mf',mf, 'rzrz', rhat_dot_r/rzrz0)
            #if piter%5 ==0: 
                #m = -self.a*(grad(x[0])[0] + grad(x[1])[1] + grad(x[2])[2]) + x[3]
                #saveSilo(self.name+"iteration"+str(piter), gravity=U[2], rho=x[3]*self.rho_0)#, m=m)
-           #mfs.append(mf)
-           #smooths.append(smooth)
-           #rzrzs.append(np.single(rhat_dot_r/rzrz0))
+           mfs.append(mf)
+           smooths.append(smooth)
+           rzrzs.append(np.single(rhat_dot_r/rzrz0))
         print(("PCG: tolerance reached after %s steps."%piter))
-        #smooths=np.array(smooths)
-        #saveSilo(self.name+"iteration"+str(piter), gravity=U[2], rho=x[3]*self.rho_0)
+
+        smooths=np.array(smooths)
+        #saveSilo(self.name+"_final"+str(piter), gravity=U[2], rho=x[3]*self.rho_0)
         #mfs=np.array(mfs)
         #rzrzs=np.array(rzrzs)
+        np.savetxt(self.name+'smooths.csv', smooths, delimiter=",")
+        np.savetxt(self.name+'mfs.csv', mfs,delimiter=",")
+        np.savetxt(self.name+'rzrzs.csv', rzrzs,delimiter=",")
         return x#, smooths, mfs, rzrzs
 
     def solve(self):
-        tstart=time()
         r = self.RHS()
+        if self.verboseLevel=="low":
+            P,r,rhatr = PCG(r, self.Aprod, self.P0, self.Msolve, self.bilinearform,
+                 atol=self.atol, rtol=self.rtol, iter_max=self.iter_max, 
+                 initial_guess=True, verbose=False)
+        elif self.verboseLevel=="medium":
+            P,r,rhatr = PCG(r, self.Aprod, self.P0, self.Msolve, self.bilinearform,
+                 atol=self.atol, rtol=self.rtol, iter_max=self.iter_max, 
+                 initial_guess=True, verbose=True)
+        elif self.verboseLevel == "high":
+            P = self.myPCG(self.P0, r, self.iter_max, self.rtol)
+        U = -self.getGravity(P)
         #P, smooths, mfs, rzrzs = self.myPCG(self.P0, r, self.iter_max, self.rtol)
-        P = self.myPCG(self.P0, r, self.iter_max, self.rtol)
-        return P[3]#, smooths, mfs, rzrzs
+        saveSilo(self.name+"_final", gravity=U[2], rho=P[3]*self.rho_0)
+        print('results silo saved to '+self.name+"_final"+'.silo')
+        return P[3]
 
 
 
@@ -367,48 +340,40 @@ args = parser.parse_args()
 config = importlib.import_module(args.config)
 print("Configuration "+args.config+".py imported.")
 
-
 rho_0    = config.rho_0
 atol     = config.atol  
 rtol     = config.rtol
 pdetol   = config.pdetol
 iter_max = config.iter_max 
-
-acc_data_file = config.accuracy_data_file
 data_scale = config.data_scale
+
 s = config.s 
 a = config.a
 b = config.b
 mu=1./(8*np.pi*s*a**3)
 
-namea = config.save_name
-
-dataWt = config.dataWt
-
-###  depthWeight    # noWt, coreWt, baseWt, updown
-depthWeight = config.depthWeight 
-
-smooths_name =  namea+'smooths.csv'
-mfs_name = namea+'mfs.csv'
-rzrzs_name = namea+'rzrzs.csv'
-
-# read in gravity
-gz = np.loadtxt(config.gravity_data_file, delimiter=',')
+gz = np.loadtxt(config.gravity_data_file, delimiter=',')*data_scale
+acc = np.array(np.loadtxt(config.acc_data_file, delimiter=','))*data_scale
 MeasEs = np.loadtxt(config.obsPts_file, delimiter=',')
 recorders=[]
 for bob in MeasEs:
     recorders.append((bob[0],bob[1],bob[2]))
-gz=np.array(gz)*config.data_scale             
+
+gz=np.array(gz)
+            
 measnum = len(gz)
 norm_data_sq = np.inner(gz,gz)
 print(measnum)
 
+
+dataWt = config.dataWt
+depthWeight = config.depthWeight 
 # data weighting
 wdsq = 1./(2.*norm_data_sq)*np.ones(measnum)
 if dataWt =='relative':
     wdsq=1./(2.*measnum*gz**2)
 if dataWt =='accuracy':
-    acc = np.array(np.loadtxt(config.accuracy_data_file, delimiter=','))*config.data_scale
+    
     scale = sum((gz/acc)**2)
     wdsq = np.array(1./(measnum*acc**2))
     
@@ -448,14 +413,11 @@ if depthWeight == "updown":
 
 rho_e = rho_0*depthWt
 
-# initial guess
 P0 = Data(0., (4,), Solution(dom)) 
-
-#print("pre call to FOSLSGravity")
 grav = FOSLSGravity(dom, gz=gz, recorders=recorders, rho_0=rho_e, P0=P0, 
                     wdsq=wdsq, mu=mu, a = a, b = b, atol=atol, rtol=rtol, 
-                    iter_max = iter_max, pde_tol=pdetol, name = siloName)
-#print("done call to gravity now calling solve")
+                    iter_max = iter_max, pde_tol=pdetol, name = config.output_name,
+                    verboseLevel = config.VerboseLevel)
 p = grav.solve()
 
 
@@ -469,13 +431,6 @@ print('mean density ', rhobar)
 print('variance     ', sigma)
 print('stddev       ', stddev)  
 
-
- 
-
-print(outname)
-#np.savetxt(smooths_name,smooths, delimiter=",")
-#np.savetxt(mfs_name,mfs,delimiter=",")
-#np.savetxt(rzrzs_name,rzrzs,delimiter=",")
 print("finished")
 
 

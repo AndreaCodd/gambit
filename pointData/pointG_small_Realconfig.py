@@ -3,14 +3,14 @@
 #
 
 gravity_data_file = "Grav_small_gz.csv"
-accuracy_data_file = "Grav_small_acc.csv"
+acc_data_file = "Grav_small_acc.csv"
 obsPts_file = "Grav_small_MeasEs.csv"
 mesh_name = "smallPointMesh.fly"
 
 
 rho_0  = 1.
 atol   = 0.
-rtol   = 1.e-3
+rtol   = 1.e-2
 pdetol = 1.e-8
 iter_max = 500
 s = 900.
@@ -19,7 +19,7 @@ b = 8.
 
 data_scale = 1.e-6
 
-save_name = 'pointG_s_'+str(int(s))+'_a_'+str(int(a))+'_b_'+str(int(b))+'_'
+output_name = 'pointG_s_'+str(int(s))+'_a_'+str(int(a))+'_b_'+str(int(b))+'_'
 
 ###  dataweighting # equal, relative, accuracy
 dataWt = "accuracy" 
@@ -29,6 +29,9 @@ dataWt = "accuracy"
 depthWeight = "noWt" 
 #coreD = -20000.
 
+VerboseLevel = "low"
+#VerboseLevel = "medium"
+#VerboseLevel = "high"
 
 
 

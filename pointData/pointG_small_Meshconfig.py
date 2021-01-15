@@ -10,10 +10,10 @@ minDist_file = "Grav_small_minDist.csv"
 
 maxDist = 5000
 
-mindist1 = 100
-mindist2 = 20
-spacing0 = 6
-spacing1 = 4
+mindist1 = 500
+mindist2 = 100
+spacing0 = 4
+spacing1 = 3
 spacing2 = 2
 
 groundLevel = 0
