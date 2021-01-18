@@ -2,7 +2,7 @@ Mesh.MshFileVersion = 2.2;
 ///Parametrization:
 //
 // It is assumed that the XY-data arrays are flat and parallel to the surface at a given height and
-// corresponding data are not changing vertically across a thin layer. 
+// corresponding data do not change vertically across a thin layer. 
 //
 // .... these are the horizontal coordinates of the lower-left (south-west) end of the data array in the mesh [m]:
 //
@@ -10,10 +10,10 @@ DataRefX={DataRefX};
 DataRefY={DataRefY};
 //
 // ... this is the height of the grav and magnetic data above ground [m]
-//
+// 
 DataHeightAboveGround={DataHeightAboveGround};
 //
-// .... this spacing of the data array [m]:
+// .... this is the spacing of the data array [m]:
 //
 DataSpacingX={DataSpacingX};
 DataSpacingY={DataSpacingY};
