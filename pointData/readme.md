@@ -44,8 +44,6 @@ Steps:
 
 ## Comments
 1. For the element lengths defined in the given geo codes, the small mesh has 205 thousand vertices and 1.4 million elements and the large mesh has 2650 thousand vertices and 18 million elements, a little over 10 times bigger.
-
-1. An older output format for gmsh needs to be used so that tagging works.
 2. It is not necessary to convert msh files to fly files but in some cases it is faster to load fly files in the inversion code.  The inversion code is generally run multiple times with different scaling factors.
 3. Three levels of output are possible:
     + low: outputs data range, summaries of gravity data and final gravity, and initial, final and difference misfits as well as a silo of the final solution.
