@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Jun  9 16:41:15 2020
+__copyright__ = "Copyright (c) 2021 by University of Queensland http://www.uq.edu.au"
+__license__   = "Licensed under the Apache License, version 2.0 http://www.apache.org/licenses/LICENSE-2.0"
+__credits__   = "Andrea Codd"
 
-@author: andrea
-"""
 import importlib, sys, os
 import numpy as np
 import argparse
-parser = argparse.ArgumentParser(description='this generates gmsh geo file for synthetic application', epilog="version 01/2021 by a.codd@uq.edu.au")
+parser = argparse.ArgumentParser(description='This generates gmsh geo file for point observations.  Element spacing at ground level depends on nearest neighbour distance of observation points.', epilog="version 01/2021 by a.codd@uq.edu.au")
 parser.add_argument(dest='config', metavar='CONFIG', type=str, help='configuration file.')
 
 args = parser.parse_args()
 config = importlib.import_module(args.config)
 
-# import measuring locations
+# import measuring locations and nearest neighbour distance for observation points. 
 pts = np.loadtxt(config.obsPts_file, delimiter=',')
-# import nearest neighbour
 nn = np.loadtxt(config.minDist_file, delimiter=',')
 
 print('making geo for observatio points ',config.obsPts_file, ' and nearest neighbour file ', config.minDist_file)
@@ -28,14 +26,11 @@ for ind1 in range(len(pts)):
     el = nndist / config.spacing0
     if nndist < config.mindist1:
         el = nndist/config.spacing1
-        
     if nndist < config.mindist2: 
         el= nndist/config.spacing2
     nds.append(el)
 
-numPts= len(pts)
-
-# core
+# core region is 1% larger than the horizontal span of all the observation points.
 xmin = 1.01*min(pts[:,0])
 xmax = 1.01*max(pts[:,0])
 xspan = xmax-xmin
@@ -49,7 +44,7 @@ zmin = config.coreDepth
 zmax = config.coreAir
 grnd = config.groundLevel
 
-# buffer
+# buffer increases horizontal domain by the minimum horizontal span of the observation points
 Bxmin = xmin - span/2
 Bxmax = xmax + span/2
 Bymin = ymin - span/2

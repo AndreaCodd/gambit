@@ -21,9 +21,6 @@ class FOSLSGravity(object):
     def __init__(self, domain, gz, recorders, rho_0, P0, wdsq, 
                        mu, a=0., b=1., atol=1.0, rtol=1.0, iter_max=100, 
                        pde_tol=1e-8, name='bob', verboseLevel="low"):
-        #####   Assumes vertical gravity.  
-        # data weighting  -  equal, relative, accuracy
-        # depth weighting - noWt, coreWt, baseWt, updown
         self.domain = domain
         self.gz = np.array(gz)
         self.locG = Locator(ContinuousFunction(self.domain),recorders)
@@ -130,7 +127,6 @@ class FOSLSGravity(object):
         NewY =Data(0.,(4,),Function(self.domain))
         NewY[3] =  (self.beta*self.rho_0/self.mu)*div(U)
         NewX = Data(0.,(4,3),Function(self.domain))
-        #print("end of RHS")
         return ArithmeticTuple (NewY, NewX)         
 
     def Aprod(self,P):
@@ -157,7 +153,6 @@ class FOSLSGravity(object):
         a=self.a
         aa=a*a
         bb=self.b*self.b
-        #cc=self.c*self.c
 
         NewY =Data(0.,(4,),Function(self.domain))
         NewX =Data(0.,(4,3),Function(self.domain))
@@ -173,11 +168,6 @@ class FOSLSGravity(object):
         NewY[1] = bb*(P[1]-a*gradp3[1])
         NewY[2] = bb*(P[2]-a*gradp3[2])
         NewY[3] = (self.beta*self.rho_0/self.mu)*div(U) + y3
-        #print(NewY[0])
-        #print(NewY[1])
-        #print(NewY[2])
-        #print(NewY[3])
-        #print()
         for kk in range(3):
             NewX[kk,kk] = -a*y3
             NewX[3,kk]= -a*NewY[kk]              # aa*gradp3[kk]-a*P[kk] 
@@ -302,9 +292,8 @@ class FOSLSGravity(object):
         print(("PCG: tolerance reached after %s steps."%piter))
 
         smooths=np.array(smooths)
-        #saveSilo(self.name+"_final"+str(piter), gravity=U[2], rho=x[3]*self.rho_0)
-        #mfs=np.array(mfs)
-        #rzrzs=np.array(rzrzs)
+        mfs=np.array(mfs)
+        rzrzs=np.array(rzrzs)
         np.savetxt(self.name+'smooths.csv', smooths, delimiter=",")
         np.savetxt(self.name+'mfs.csv', mfs,delimiter=",")
         np.savetxt(self.name+'rzrzs.csv', rzrzs,delimiter=",")
@@ -332,7 +321,7 @@ class FOSLSGravity(object):
 
 ########################################################################
 ### Input files and variables from file 
-parser = argparse.ArgumentParser(description='Gravity inversion for plane data in netcdf format.', epilog="version 01/2021 by a.codd@uq.edu.au")
+parser = argparse.ArgumentParser(description='Gravity inversion for point data in csv format.', epilog="version 01/2021 by a.codd@uq.edu.au")
 parser.add_argument(dest='config', metavar='CONFIG', type=str, help='configuration file.')
 args = parser.parse_args()
 config = importlib.import_module(args.config)
@@ -371,7 +360,6 @@ wdsq = 1./(2.*norm_data_sq)*np.ones(measnum)
 if dataWt =='relative':
     wdsq=1./(2.*measnum*gz**2)
 if dataWt =='accuracy':
-    
     scale = sum((gz/acc)**2)
     wdsq = np.array(1./(measnum*acc**2))
     

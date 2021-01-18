@@ -1,10 +1,14 @@
+__copyright__ = "Copyright (c) 2021 by University of Queensland http://www.uq.edu.au"
+__license__   = "Licensed under the Apache License, version 2.0 http://www.apache.org/licenses/LICENSE-2.0"
+__credits__   = "Andrea Codd"
+
 import importlib, os, sys
 sys.path.append(os.getcwd())
 import argparse
 import numpy as np
 from esys.escript import length
 
-parser = argparse.ArgumentParser(description='this computes nearest neighbour distance for observation points', epilog="version 01/2021 by a.codd@uq.edu.au")
+parser = argparse.ArgumentParser(description='This computes nearest neighbour distance for observation points and saves it as a csv file.  It is used to make the variable ground mesh.', epilog="version 01/2021 by a.codd@uq.edu.au")
 parser.add_argument(dest='config', metavar='CONFIG', type=str, help='configuration file.')
 
 args = parser.parse_args()
