@@ -15,9 +15,9 @@ The inversion can either be run with the small data sets or the large data sets.
 
 Steps:
 1. compute minimum distance between observation points.
-`python3 ~/gambit/bin/savemindist.py pointG_small_Meshconfig`
-or
-`python3 ~/gambit/bin/savemindist.py pointG_Meshconfig`
+ - `python3 ~/gambit/bin/savemindist.py pointG_small_Meshconfig`
+ - `python3 ~/gambit/bin/savemindist.py pointG_Meshconfig`
+ 
 Element length at observations is determined by the distance to its nearest neighbour.
 
 2. generate geo file
