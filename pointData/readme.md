@@ -4,7 +4,7 @@ The original data sets are in csv format and are for 6519 observation points.
 2. `Grav_gz.csv` contains the Bouger corrected gravity measurements in micro m/s^2.
 3. `Grav_acc.csv` cotains the measurement accuracy in micro m/s^2.
 
-It is possible to run the inversion on a smaller data set.  The smaller data set has 1630 data points and can be created using halvepts.py.
+It is possible to run the inversion on a smaller data set.  The smaller data set has 1630 data points and can be created using halvepts.py.  It is set up to select every 4th observation points starting from the first element.
  - `python3 ~/gambit/bin/halvepts.py pointG_small_Meshconfig`
     * `Grav_small_MeasEs.csv` contains the cartesian coordinates of the observation points.
     * `Grav_small_gz.csv` contains the Bouger corrected gravity measurements in micro m/s^2.
@@ -24,10 +24,14 @@ Steps:
       * Grav_minDist.py
 2. Generate geo file.  This uses mesh config files pointG_small_Meshconfig.py or pointG_Meshconfig.py
  - `python3 ~/gambit/bin/makeVariableGroundMesh.py pointG_small_Meshconfig`
+      * smallPointMesh.geo
  - `python3 ~/gambit/bin/makeVariableGroundMesh.py pointG_Meshconfig`
+      * PointMesh.geo
 3. Generate mesh from geo file.
  - `gmsh -3 -o smallPointMesh.msh smallPointMesh.geo`
+      * smallPointMesh.msh
  - `gmsh -3 -format msh2 -o PointMesh.msh PointMesh.geo`
+      * PointMesh.msh
 4. Convert msh file to fly file (optional).
  - `run-escript ~/gambit/bin/mkfly.py smallPointMesh`
  - `run-escript ~/gambit/bin/mkfly.py PointMesh`
