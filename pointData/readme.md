@@ -5,11 +5,10 @@ The original data sets are in csv format and are for 6519 observation points.
 3. `Grav_acc.csv` cotains the measurement accuracy in micro m/s^2.
 
 It is possible to run the inversion on a smaller data set.  The smaller data set has 1630 data points and can be created using halvepts.py.
-`python3 ~/gambit/bin/halvepts.py pointG_small_Meshconfig`
-This creates data sets for every 4th observation.
-1. `Grav_small_MeasEs.csv` contains the cartesian coordinates of the observation points.
-2. `Grav_small_gz.csv` contains the Bouger corrected gravity measurements in micro m/s^2.
-3. `Grav_small_acc.csv` cotains the measurement accuracy in micro m/s^2.
+ - `python3 ~/gambit/bin/halvepts.py pointG_small_Meshconfig`
+    * `Grav_small_MeasEs.csv` contains the cartesian coordinates of the observation points.
+    * `Grav_small_gz.csv` contains the Bouger corrected gravity measurements in micro m/s^2.
+    * `Grav_small_acc.csv` cotains the measurement accuracy in micro m/s^2.
 
 Two configuration files are needed, one for the mesh and one for the inversion
 - pointG_small_Meshconfig.py or pointG_Meshconfig.py
