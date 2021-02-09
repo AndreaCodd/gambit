@@ -32,9 +32,6 @@ x,y,data=np.loadtxt(args.xyfile, comments='#', unpack=True)
 print(len(x)," data point found.")
 xN=np.nonzero( abs(x[1:] -x[0]) < 1e-8 * np.linalg.norm(x, ord=np.inf))[0][0]
 yN=np.nonzero( abs(y[1:] -y[0]) < 1e-8 * np.linalg.norm(y, ord=np.inf))[0][0]
-print(xN, yN)
-print(x[0], x[xN-1], x[xN],x[xN+1],)
-print(y[0], y[xN-1], y[xN],y[xN+1],)
 if yN > 0:
     yy=x[:yN+1]
     xx=y[::yN+1]
