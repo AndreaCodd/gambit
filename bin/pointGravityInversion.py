@@ -297,6 +297,8 @@ class FOSLSGravity(object):
         np.savetxt(self.name+'smooths.csv', smooths, delimiter=",")
         np.savetxt(self.name+'mfs.csv', mfs,delimiter=",")
         np.savetxt(self.name+'rzrzs.csv', rzrzs,delimiter=",")
+        np.savetxt(self.name+'compg.csv',U2data,delimiter=",")
+        np.savetxt(self.name+'diffG.csv',diffG,delimiter=",")
         return x#, smooths, mfs, rzrzs
 
     def solve(self):
@@ -389,7 +391,7 @@ gVol = (xmax-xmin)*(ymax-ymin)*(gd-minZ)
 
 if depthWeight == "coreWt":
     coreD = config.coreD
-    factor = coord[2]/coreD*wherePositive(coord[2]-coreD)+(1.-wherePositive(coord[2]-coreD))
+    factor = 1.+coord[2]/coreD*wherePositive(coord[2]-coreD)+(1.-wherePositive(coord[2]-coreD))
     depthWt = depthWt*(factor)
 if depthWeight == "baseWt":
     depthWt = depthWt*coord[2]/inf(coord[2])
@@ -398,6 +400,8 @@ if depthWeight == "updown":
     depthWt = depthWt*(factor)
 
 rho_e = rho_0*depthWt
+
+saveSilo("bobish", rhoref=rho_e)
 
 P0 = Data(0., (4,), Solution(dom)) 
 grav = FOSLSGravity(dom, gz=gz, recorders=recorders, rho_0=rho_e, P0=P0, 

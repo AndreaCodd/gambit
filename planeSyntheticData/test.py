@@ -20,8 +20,8 @@
 project="test"
 km=1000.
 
-gravfile=project+"_grav.nc"
-magfile=project+"_mag.nc"
+gravfile=project+"_grav1.nc"
+magfile=project+"_mag1.nc"
 
 #
 # It is assumed that the XY-data arrays are flat and parallel to the surface at a given height and
@@ -32,7 +32,7 @@ DataRefX=0.0
 DataRefY=0.0
 
 # ... this is the height of the grav and magnetic data above ground [m] (can be zero)
-DataHeightAboveGround=0.#1*km
+DataHeightAboveGround=1*km
 
 # .... this total extent of the data array [m]:(total length of the array)
 #DataSpacingX=1*km
