@@ -279,8 +279,11 @@ grav = ACGravity(dom, w_e, gz_e, rho_e, mu, m0, atol, rtol, iter_max, pdetol, co
 m, gz =grav.solve()
 
 wgz = w_e*gz
+RMS=np.sqrt(integrate(wherePositive(w_e)*(gz-gz_e)**2)/integrate(wherePositive(w_e)))
+print("RMS",RMS)
+gravdiff=wgz-gz_e
 densitydiff=m*rho_e
-saveSilo(config.output_name+"_final", gravity=gz, wgz=wgz, m=m, data=gz_e, densitydiff=densitydiff)
+saveSilo(config.output_name+"_final", gravity=gz, wgz=wgz,gravidiff=gravdiff, m=m, data=gz_e, densitydiff=densitydiff)
 print('results silo saved to '+config.output_name+'_final.silo')
 print("finished")
 

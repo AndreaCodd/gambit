@@ -20,8 +20,8 @@
 project="test"
 km=1000.
 
-gravfile=project+"_grav1.nc"
-magfile=project+"_mag1.nc"
+gravfile=project+"_grav1Noise.nc"
+magfile=project+"_mag1Noise.nc"
 
 #
 # It is assumed that the XY-data arrays are flat and parallel to the surface at a given height and
@@ -32,7 +32,7 @@ DataRefX=0.0
 DataRefY=0.0
 
 # ... this is the height of the grav and magnetic data above ground [m] (can be zero)
-DataHeightAboveGround=1*km
+DataHeightAboveGround=0*km
 
 # .... this total extent of the data array [m]:(total length of the array)
 #DataSpacingX=1*km
@@ -41,13 +41,13 @@ LDataY=40*km
 LDataX=70*km
 
 # ... number of data points in east-west (X) and north-south (Y) direction:
-DataNumX=71
-DataNumY=41
+DataNumX=141
+DataNumY=81
 
 # Note: the resolution specified here should roughly match the resolution of the actual data as input data are interpolated to the resolution in the mesh
 
 # ... this is the "thickness" of the data array = the thickness of the vertical layer. 
-DataMeshSizeVertical=1*km
+DataMeshSizeVertical=0.5*km
 
 # ... this is the thickness of region below the data area. In essence it defines the depth of the inversion
 CoreThickness=60*km
@@ -80,11 +80,13 @@ B_hy = 0.0     # background magnetic field in nT z direction
 #
 # this defines the assumed true density and magnetization:
 # 
-s1={ 'xc' : LDataX/3, 'yc' : LDataY/3, 'zc' : -CoreThickness*0.2, 'r' : 10*km }
-s2={ 'xc' : 2*LDataX/3, 'yc' : 2*LDataY/3, 'zc' : -CoreThickness*0.1, 'r' : 8*km }
+s1={ 'xc' : LDataX/3, 'yc' : LDataY/3, 'zc' : -CoreThickness*0.145, 'r' : 8*km }
+s2={ 'xc' : 2*LDataX/3, 'yc' : 2*LDataY/3, 'zc' : -CoreThickness*0.11, 'r' : 6*km }
 
 # ... 500 kg/m^3 over the union of sphere 1 and 2
 true_density = [(-320, [s1]),(500, [s2]) ] 
 
 # ... 0.1 on sphere 1 and 0.03 on sphere 2:
 true_magnetization= [ ( 0.16, [s1]), (-0.25, [s2])]
+
+noise=5

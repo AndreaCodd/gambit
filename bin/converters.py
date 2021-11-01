@@ -93,7 +93,7 @@ def writeNetCDF(filename,
     if DELTA_X > 0:
         longitude=np.linspace(ORIGIN_X, ORIGIN_X+(NX-1)*DELTA_X, NX, endpoint=True, dtype=data.dtype)
     elif DELTA_X < 0:
-        latitude=np.linspace(ORIGIN_X-(NX-1)*DELTA_X, ORIGIN_X, NX, endpoint=True, dtype=data.dtype)
+        longitude=np.linspace(ORIGIN_X-(NX-1)*DELTA_X, ORIGIN_X, NX, endpoint=True, dtype=data.dtype)
         
     o.createDimension(XTAG.lower(), NX)
     v=o.createVariable(XTAG.lower(), longitude.dtype, [XTAG.lower()])

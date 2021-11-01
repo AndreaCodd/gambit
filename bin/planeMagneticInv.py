@@ -295,10 +295,10 @@ k_0 = k_0*ground_e
 #if config.VerboseLevel == "low":
 cmag = ACmag(dom, w_e, bBx, bBy, bBz, dmag_e, k_0, mu, m0, atol, rtol, iter_max, pdetol, config.output_name, config.VerboseLevel)
 m, cmb = cmag.solve()
-
+mdiff=cmb*w_e-dmag_e
 
 newk=m*k_0
-saveSilo(config.output_name+"_final", c_mag = cmb , m=m, data=dmag_e, k=newk)
+saveSilo(config.output_name+"_final", c_mag = cmb ,magdiff=mdiff, m=m, data=dmag_e, k=newk)
 print('results silo saved to '+config.output_name+'_final.silo')
 print("finished")
 

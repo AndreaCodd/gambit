@@ -28,7 +28,7 @@ if not args.outfile is None:
 else:
     outfile=basename+".nc"
 
-x,y,data=np.loadtxt(args.xyfile, comments='#', unpack=True)
+x,y,data=np.loadtxt(args.xyfile, comments='#', unpack=True,delimiter=',')
 print(len(x)," data point found.")
 xN=np.nonzero( abs(x[1:] -x[0]) < 1e-8 * np.linalg.norm(x, ord=np.inf))[0][0]
 yN=np.nonzero( abs(y[1:] -y[0]) < 1e-8 * np.linalg.norm(y, ord=np.inf))[0][0]

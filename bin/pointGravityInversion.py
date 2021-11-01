@@ -23,6 +23,7 @@ class FOSLSGravity(object):
                        pde_tol=1e-8, name='bob', verboseLevel="low"):
         self.domain = domain
         self.gz = np.array(gz)
+        self.w = - kronecker(3)[2]
         self.locG = Locator(ContinuousFunction(self.domain),recorders)
         self.rho_0 = rho_0  
         self.P0 =  P0   
@@ -37,7 +38,7 @@ class FOSLSGravity(object):
         self.name = name
         self.numes = len(self.gz)
         self.verboseLevel = verboseLevel
-        self.beta = 4.0*np.pi*U.Gravitational_Constant
+        self.beta = -4.0*np.pi*U.Gravitational_Constant
 
         #boundaries       
         coord=self.domain.getX()
@@ -87,7 +88,7 @@ class FOSLSGravity(object):
         pde.setValue(A = aa*kronecker(3))
         pde.setValue(D = Scalar(bb  , Function(self.domain)))
         pde.setSymmetryOn()
-        q=self.qleft+self.qright+self.qtop+self.qfront+self.qback+self.qtop+self.qbottom
+        q=self.qleft+self.qright+self.qfront+self.qback+self.qtop+self.qbottom
         pde.setValue(q=q)
         Foptions=pde.getSolverOptions()
         Foptions.setPackage(SolverOptions.TRILINOS)
@@ -103,7 +104,7 @@ class FOSLSGravity(object):
         pde=LinearSinglePDE(self.domain, isComplex=False)
         pde.setValue(A = aabb*kronecker(3))
         pde.setValue(D = Scalar(1., Function(self.domain)))
-        q=self.qleft+self.qright+self.qtop+self.qfront+self.qback+self.qtop+self.qbottom
+        q=self.qleft+self.qright+self.qfront+self.qback+self.qtop+self.qbottom
         pde.setValue(q=q)
         Foptions=pde.getSolverOptions()
         Foptions.setPackage(SolverOptions.TRILINOS)
@@ -113,17 +114,19 @@ class FOSLSGravity(object):
         Foptions.setTrilinosParameter("reuse: type","full")
         return pde
 
-    def RHS(self): 
-        # returns initial residual  
-        # ( LU , LV) = (w^2 d r, V) : V=test functions
+    def getRHSsolve(self, f):
         Y = Data(0,(3,),Function(self.domain))
         X = Data(0,(3,3),Function(self.domain))
         wtWd = Data(0,(3,),DiracDeltaFunctions(self.domain))
         for e in range(self.numes):
-            bob=(0.,0.,-self.wdsq[e]*self.gz[e]) 
+            bob = self.w*wdsq[e]*f[e] 
             wtWd.setTaggedValue(e, bob)
         self.FOSLSpde.setValue(X = X, Y = Y , y_dirac=wtWd )
-        U = self.FOSLSpde.getSolution()
+        return self.FOSLSpde.getSolution()        
+        
+
+    def RHS(self): 
+        U = self.getRHSsolve(self.gz) 
         NewY =Data(0.,(4,),Function(self.domain))
         NewY[3] =  (self.beta*self.rho_0/self.mu)*div(U)
         NewX = Data(0.,(4,3),Function(self.domain))
@@ -132,30 +135,17 @@ class FOSLSGravity(object):
     def Aprod(self,P):
         # left hand side <AP,Q> = (SP, SQ)+(DP, Q) = (S1 P + D P, Q) + (S2 P, grad(Q)) 
         # returns tuple(S1 P + D P , S2 P)
-        # small system pde solves
-        # (LU, LV) = (fm ,LV) = (beta m , V0_x + V1_y +V2_z)
-        Y = Data(0,(3,),Function(self.domain))
-        X = Data(0,(3,3),Function(self.domain))
-        wtWd = Data(0,(3,),DiracDeltaFunctions(self.domain))
-        for jj in range(3):
-            X[jj,jj] = self.beta*self.rho_0*P[3]
-        self.FOSLSpde.setValue(Y = Y, X = X, y_dirac = wtWd)   
-        U = self.FOSLSpde.getSolution()
-        # (LU2, LV) = (w^t U, w^t V)
-        U2data = self.wdsq*self.locG(U[2])
-        for e in range(self.numes):
-            bob = (0.,0.,U2data[e])
-            wtWd.setTaggedValue(e,bob)
-        X = Data(0,(3,3),Function(self.domain))
-        self.FOSLSpde.setValue(Y=Y, X = X, y_dirac=wtWd )   
-        U = self.FOSLSpde.getSolution()
+        Udown = - self.getGravity(P)[2]
+        U2pts = np.array(self.locG(Udown))
+        cU = self.locG(U2pts)
+        U =  self.getRHSsolve(cU) 
 
         a=self.a
         aa=a*a
         bb=self.b*self.b
-
         NewY =Data(0.,(4,),Function(self.domain))
         NewX =Data(0.,(4,3),Function(self.domain))
+
         gradp0 = grad(P[0])
         gradp1 = grad(P[1])
         gradp2 = grad(P[2])
@@ -248,10 +238,11 @@ class FOSLSGravity(object):
         if atol2<=0:
            print("Non-positive tolarance.")
         print(("PCG: initial residual norm = %e (absolute tolerance = %e)"%(norm_r0, atol2)))
-        # this bit not actuall needed, just initial output for csvs
-        U2 = -self.getGravity(x)[2]
-        U2vect=np.array(self.locG(U2))
-        diffG= U2vect-self.gz 
+        # this bit not actually needed, just initial output for csvs
+        # will need to fix for varying down
+        Udown = - self.getGravity(x)[2]
+        U2pts = np.array(self.locG(Udown))
+        diffG= U2pts - self.gz 
         mf=np.inner(diffG, diffG*self.wdsq )
         smooth=self.getSPSP(x)
         smooths.append(smooth)
@@ -273,24 +264,18 @@ class FOSLSGravity(object):
            beta = rhat_dot_r_new / rhat_dot_r
            rhat+=beta * d
            d=rhat
-
            rhat_dot_r = rhat_dot_r_new
            if rhat_dot_r<0: print("negative norm.")
-           U = -self.getGravity(x)
+           U = - self.getGravity(x)
            U2data = np.array(self.locG(U[2]))
            diffG=U2data-self.gz
            mf=np.inner(diffG, diffG*self.wdsq )
            smooth=self.getSPSP(x)
            print(piter, 'mf',mf,'smooth',smooth, 'rzrz', rhat_dot_r/rzrz0)
-           #print(piter, 'mf',mf, 'rzrz', rhat_dot_r/rzrz0)
-           #if piter%5 ==0: 
-               #m = -self.a*(grad(x[0])[0] + grad(x[1])[1] + grad(x[2])[2]) + x[3]
-               #saveSilo(self.name+"iteration"+str(piter), gravity=U[2], rho=x[3]*self.rho_0)#, m=m)
            mfs.append(mf)
            smooths.append(smooth)
            rzrzs.append(np.single(rhat_dot_r/rzrz0))
         print(("PCG: tolerance reached after %s steps."%piter))
-
         smooths=np.array(smooths)
         mfs=np.array(mfs)
         rzrzs=np.array(rzrzs)
@@ -313,9 +298,22 @@ class FOSLSGravity(object):
                  initial_guess=True, verbose=True)
         elif self.verboseLevel == "high":
             P = self.myPCG(self.P0, r, self.iter_max, self.rtol)
-        U = -self.getGravity(P)
-        #P, smooths, mfs, rzrzs = self.myPCG(self.P0, r, self.iter_max, self.rtol)
-        saveSilo(self.name+"_final", gravity=U[2], rho=P[3]*self.rho_0)
+        U = self.getGravity(P)
+
+        pdeG = LinearSinglePDE(self.domain)
+        pdeG.setSymmetryOn()
+        pdeG.setValue(A = kronecker(3))
+        pdeG.setValue(q = self.qtop)
+        pdeG.setValue(Y = - self.beta*self.rho_0*P[3])
+        optionsG=pdeG.getSolverOptions()
+        optionsG.setPackage(SolverOptions.TRILINOS)
+        optionsG.setSolverMethod(SolverOptions.PCG)
+        optionsG.setPreconditioner(SolverOptions.AMG)
+
+        u = pdeG.getSolution()
+        gradu= grad(u, ReducedFunction(dom))
+
+        saveSilo(self.name+"_final", gravity = - U[2], grav2 = - gradu[2], rho=P[3]*self.rho_0)
         print('results silo saved to '+self.name+"_final"+'.silo')
         return P[3]
 
@@ -362,7 +360,6 @@ wdsq = 1./(2.*norm_data_sq)*np.ones(measnum)
 if dataWt =='relative':
     wdsq=1./(2.*measnum*gz**2)
 if dataWt =='accuracy':
-    scale = sum((gz/acc)**2)
     wdsq = np.array(1./(measnum*acc**2))
     
 # build domain 
@@ -378,7 +375,8 @@ else:
 print("Mesh read from "+config.mesh_name) 
 
 coord=dom.getX()
-depthWt = whereNegative(coord[2])
+coord2=ReducedFunction(dom).getX()
+depthWt = whereNegative(coord2[2])
 
 minZ =inf(coord[2])
 gd = 0.0
@@ -391,18 +389,16 @@ gVol = (xmax-xmin)*(ymax-ymin)*(gd-minZ)
 
 if depthWeight == "coreWt":
     coreD = config.coreD
-    factor = 1.+coord[2]/coreD*wherePositive(coord[2]-coreD)+(1.-wherePositive(coord[2]-coreD))
+    factor = 1.+coord2[2]/coreD*wherePositive(coord2[2]-coreD)+(1.-wherePositive(coord2[2]-coreD))
     depthWt = depthWt*(factor)
 if depthWeight == "baseWt":
-    depthWt = depthWt*coord[2]/inf(coord[2])
-if depthWeight == "updown":
-    factor = coord[2]/coreD*wherePositive(coord[2]-coreD)+ (1.- coord[2]/minZ)*(1.-wherePositive(coord[2]-coreD))
-    depthWt = depthWt*(factor)
+    depthWt = depthWt*coord2[2]/inf(coord2[2])
 
-rho_e = rho_0*depthWt
+rho_e = Scalar(rho_0,ReducedFunction(dom))*depthWt
 
-saveSilo("bobish", rhoref=rho_e)
+#saveSilo("bobish", rhoref=rho_e)
 
+print("saved bobbish")
 P0 = Data(0., (4,), Solution(dom)) 
 grav = FOSLSGravity(dom, gz=gz, recorders=recorders, rho_0=rho_e, P0=P0, 
                     wdsq=wdsq, mu=mu, a = a, b = b, atol=atol, rtol=rtol, 

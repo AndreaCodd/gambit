@@ -29,10 +29,10 @@ print("configuration "+args.config+".py imported.")
 
 filename, file_extension = os.path.splitext(config.meshfile)
 if file_extension == ".msh":
-    domain=ReadGmsh("syth_"+config.meshfile, 3, optimize=True )
+    domain=ReadGmsh(config.meshfile, 3, optimize=True )
 else:
-    domain=ReadMesh("syth_"+config.meshfile,  optimize=True)
-print("mesh read from "+"syth_"+config.meshfile)
+    domain=ReadMesh(config.meshfile,  optimize=True)
+print("mesh read from "+config.meshfile)
 
 def createStructure(x, structure, show=False):
     """
@@ -76,7 +76,7 @@ if args.gravity:
     model=GravityModel(domain, fixBase=True)
 
     
-    model.setDensity(createStructure(ReducedFunction(domain).getX(), config.true_density, show=args.debug ))
+    model.setDensity(createStructure(ReducedFunction(domain).getX(), config.true_density, show=True ))
 
     # Solve for gravity field anomaly
     potential=model.getGravityPotential()
@@ -92,7 +92,17 @@ if args.gravity:
     print("data region range = [%s, %s] x [%s, %s]"%(xi[0].min(), xi[0].max(), xi[1].min(), xi[1].max() ))
     print("gravity data range = [%s, %s] mgal"%(G.min(), G.max()))
     
-
+    if config.noise>0:
+        std=config.noise/100.
+        pert=np.random.normal(0.0, scale=std, size=(config.DataNumY,config.DataNumX))
+        #print(pert)
+        #print(G)
+        #print(pert.shape)
+        #print(G.shape)
+        G*=(1+pert)    
+        print("%g %% noise added."%config.noise)
+    else:
+        print("no noise added.")
     n=writeNetCDF(filename=config.gravfile, 
                 data=G,
                 units='m',
@@ -110,7 +120,7 @@ if args.gravity:
     plt.xlabel("x [m]")
     plt.ylabel("y [m]")    
     plt.title("Gravity anomaly at height %s "%(config.DataMeshSizeVertical/2+config.DataHeightAboveGround))
-    plt.savefig("gravdata.png")
+    plt.savefig("gravdataNoise.png")
     print("gravity image generated.")
     print("** gravity completed.")
     
@@ -137,7 +147,16 @@ if args.magnetic:
     print("data region range = [%s, %s] x [%s, %s]"%(xi[0].min(), xi[0].max(), xi[1].min(), xi[1].max() ))
     print("magnetic field anomaly data range = [%s, %s] nT"%(B_A.min(), B_A.max()))
     
-
+    if config.noise>0:
+        std=config.noise/100.
+        pert=np.random.normal(0.0, scale=std, size=(config.DataNumY,config.DataNumX))
+        #print(pert)
+        #print(B_A)
+        #print(pert.shape)
+        #print(B_A.shape)
+        B_A*=(1+pert)    
+        print("%g %% noise added."%config.noise)
+        
     n=writeNetCDF(filename=config.magfile, 
                 data=B_A,
                 units='m',
@@ -155,7 +174,7 @@ if args.magnetic:
     plt.xlabel("x [m]")
     plt.ylabel("y [m]")    
     plt.title("Magnetic field anomaly at height %s "%(config.DataMeshSizeVertical/2+config.DataHeightAboveGround))
-    plt.savefig("magdata.png")
+    plt.savefig("magdataNoise.png")
     print("magnetic image generated.")
     print("** magnetic completed.")
     
